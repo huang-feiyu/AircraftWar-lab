@@ -1,6 +1,10 @@
 @startuml
 'https://plantuml.com/class-diagram
 
+'extension: <|--
+'composition: *--
+'aggregation: o--
+'.. => dotted line
 abstract class FlyingObject
 {
     # int locationX
@@ -38,19 +42,32 @@ abstract class AbstractAircraft
 abstract class AbstractBullet
 {
     - int power
-    + Bullet(int locationX, int locationY, int speedX, int speedY, int power):void
+    + AbstractBullet(int locationX, int locationY, int speedX, int speedY, int power):void
     + forward():void
 	+ getPower():int
 }
 
+abstract class AbstractProp
+{
+    + AbstractProp(int locationX, int locationY, int speedX, int speedY, int power):void
+    + forward():void
+}
+
 FlyingObject <|-- AbstractAircraft
 FlyingObject <|-- AbstractBullet
+FlyingObject <|-- AbstractProp
 
 AbstractAircraft <|-- HeroAircraft
 AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- BossEnemy
 
 AbstractBullet <|-- HeroBullet
 AbstractBullet <|-- EnemyBullet
+
+AbstractProp <|-- BloodProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- BulletProp
 
 class HeroAircraft {
     - int shootNum
@@ -67,6 +84,23 @@ class MobEnemy {
     + shoot():List<Bullet>
 }
 
+class EliteEnemy {
+    - int power
+    - int direction
+    + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp):void
+    + forward():void
+    + shoot():List<Bullet>
+}
+
+class BossEnemy {
+    - int shootNum
+    - int power
+    - int direction
+    + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp):void
+    + forward():void
+    + shoot():List<Bullet>
+}
+
 class HeroBullet {
     + HeroBullet(int locationX, int locationY,
      int speedX, int speedY, int power):void
@@ -75,6 +109,23 @@ class HeroBullet {
 class EnemyBullet {
     + EnemyBullet(int locationX, int locationY,
      int speedX, int speedY, int power):void
+}
+
+class BloodProp {
+    - int blood
+    + BloodProp(int locationX, int locationY,
+     int speedX, int speedY):void
+    + getBlood():int
+}
+
+class BombProp {
+    + BombProp(int locationX, int locationY,
+     int speedX, int speedY):void
+}
+
+class BulletProp {
+    + BulletProp(int locationX, int locationY,
+     int speedX, int speedY):void
 }
 
 @enduml
