@@ -1,6 +1,8 @@
 package edu.hitsz.bullet;
 
 /**
+ * 英雄子弹
+ *
  * @Author hitsz
  */
 public class HeroBullet extends AbstractBullet {
