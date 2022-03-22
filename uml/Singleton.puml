@@ -1,0 +1,13 @@
+@startuml
+class HeroAircraft {
+    - ...
+    - instance:HeroAircraft
+    - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    + getInstance():HeroAircraft
+    + ...()
+}
+
+Game -> HeroAircraft::getInstance
+HeroAircraft::instance -> HeroAircraft
+
+@enduml

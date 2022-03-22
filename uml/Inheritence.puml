@@ -31,20 +31,20 @@ abstract class AbstractFlyingObject
 }
 abstract class AbstractAircraft
 {
-	# maxHp:int
+    # maxHp:int
     # hp:int
     + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
     + decreaseHp(int decrease):void
     + getHp():int
     + {abstract} shoot():List<Bullet>
- }
+}
 
 abstract class BaseBullet
 {
     - power:int
     + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
     + forward():void
-	+ getPower():int
+    + getPower():int
 }
 
 abstract class AbstractProp
@@ -73,7 +73,9 @@ class HeroAircraft {
     - shootNum:int
     - power:int
     - direction:int
-    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    - instance:HeroAircraft
+    - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    + getInstance():HeroAircraft
     + forward():void
     + shoot():List<BaseBullet>
     + getMaxHp():int
@@ -104,29 +106,29 @@ class BossEnemy {
 
 class HeroBullet {
     + HeroBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
+    int speedX, int speedY, int power)
 }
 
 class EnemyBullet {
     + EnemyBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
+    int speedX, int speedY, int power)
 }
 
 class BloodProp {
     - blood:int
     + BloodProp(int locationX, int locationY,
-     int speedX, int speedY)
+    int speedX, int speedY)
     + getBlood():int
 }
 
 class BombProp {
     + BombProp(int locationX, int locationY,
-     int speedX, int speedY)
+    int speedX, int speedY)
 }
 
 class BulletProp {
     + BulletProp(int locationX, int locationY,
-     int speedX, int speedY)
+    int speedX, int speedY)
 }
 
 @enduml

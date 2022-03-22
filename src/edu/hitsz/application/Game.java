@@ -1,6 +1,8 @@
 package edu.hitsz.application;
 
 import edu.hitsz.aircraft.*;
+import edu.hitsz.aircraft.enemy.EliteEnemy;
+import edu.hitsz.aircraft.enemy.MobEnemy;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.prop.AbstractProp;
@@ -54,20 +56,17 @@ public class Game extends JPanel {
 
 
     public Game() {
-        heroAircraft = new HeroAircraft(
-            Main.WINDOW_WIDTH / 2,
-            Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
-            0, 0, 100);
+        heroAircraft = HeroAircraft.getInstance();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
         props = new LinkedList<>();
 
-        //Scheduled 线程池，用于定时任务调度
+        // Scheduled 线程池，用于定时任务调度
         executorService = new ScheduledThreadPoolExecutor(1);
 
-        //启动英雄机鼠标监听
+        // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
 
     }
