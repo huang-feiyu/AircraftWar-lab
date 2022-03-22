@@ -90,7 +90,7 @@ public class Game extends JPanel {
                 System.out.println("\033[32mTIME:\033[0m " + time);
                 // new enemy generate
                 if (enemyAircrafts.size() < enemyMaxNumber) {
-                    enemyAircrafts.add(GenerateEnemy());
+                    enemyAircrafts.add(generateEnemy());
                 }
                 // 飞机射出子弹
                 shootAction();
@@ -216,7 +216,7 @@ public class Game extends JPanel {
                     if (enemyAircraft.notValid()) {
                         boolean isElite = enemyAircraft instanceof EliteEnemy;
                         if (isElite) {
-                            GenerateProp((EliteEnemy) enemyAircraft);
+                            generateProp((EliteEnemy) enemyAircraft);
                         }
                         score += isElite ? 20 : 10;
                     }
@@ -232,7 +232,7 @@ public class Game extends JPanel {
         // 相撞，我方获得道具，道具生效
         for (AbstractProp prop : props) {
             if (prop.crash(heroAircraft) || heroAircraft.crash(prop)) {
-                ApplyProp(prop);
+                applyProp(prop);
                 prop.vanish();
             }
         }
@@ -242,7 +242,7 @@ public class Game extends JPanel {
     /**
      * 生成敌机
      */
-    private AbstractAircraft GenerateEnemy() {
+    private AbstractAircraft generateEnemy() {
         int x = (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth()));
         int y = (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2);
         return ((int) (Math.random() * 2) == 0 ?
@@ -253,7 +253,7 @@ public class Game extends JPanel {
     /**
      * 生成道具
      */
-    private void GenerateProp(EliteEnemy enemyAircraft) {
+    private void generateProp(EliteEnemy enemyAircraft) {
         int x = enemyAircraft.getLocationX();
         int y = enemyAircraft.getLocationY();
         // move like a bullet
@@ -261,15 +261,12 @@ public class Game extends JPanel {
         switch ((int) (Math.random() * 5 + 1)) {
             case 1: // blood
                 props.add(new BloodFactory().CreateProp(x, y, 0, speed));
-                // System.out.println("Blood Prop generated");
                 break;
             case 2: // bomb
                 props.add(new BombFactory().CreateProp(x, y, 0, speed));
-                // System.out.println("Bomb Prop generated");
                 break;
             case 3: // FireSupply
                 props.add(new BulletFactory().CreateProp(x, y, 0, speed));
-                // System.out.println("Bullet Prop generated");
             default: // do nothing
         }
     }
@@ -277,7 +274,7 @@ public class Game extends JPanel {
     /**
      * 道具产生效果
      */
-    private void ApplyProp(AbstractProp prop) {
+    private void applyProp(AbstractProp prop) {
         String propPrompt = "\033[96mPROP:\033[0m";
         if (prop instanceof BloodProp) {
             heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
