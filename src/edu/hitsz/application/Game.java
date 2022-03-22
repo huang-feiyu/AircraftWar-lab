@@ -1,14 +1,18 @@
 package edu.hitsz.application;
 
 import edu.hitsz.aircraft.*;
-import edu.hitsz.aircraft.enemy.EliteEnemy;
-import edu.hitsz.aircraft.enemy.MobEnemy;
+import edu.hitsz.aircraft.EliteEnemy;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.prop.BloodProp;
 import edu.hitsz.prop.BombProp;
 import edu.hitsz.prop.BulletProp;
+import edu.hitsz.tool.factory.enemy.EliteFactory;
+import edu.hitsz.tool.factory.enemy.MobFactory;
+import edu.hitsz.tool.factory.prop.BloodFactory;
+import edu.hitsz.tool.factory.prop.BombFactory;
+import edu.hitsz.tool.factory.prop.BulletFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +38,7 @@ public class Game extends JPanel {
     /**
      * 时间间隔(ms)，控制刷新频率
      */
-    private int timeInterval = 40;
+    final private int timeInterval = 40;
 
     private final HeroAircraft heroAircraft;
     private final List<AbstractAircraft> enemyAircrafts;
@@ -42,7 +46,7 @@ public class Game extends JPanel {
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
 
-    private int enemyMaxNumber = 5;
+    final private int enemyMaxNumber = 5;
 
     private boolean gameOverFlag = false;
     private int score = 0;
@@ -51,13 +55,12 @@ public class Game extends JPanel {
      * 周期（ms)
      * 指示子弹的发射、敌机的产生频率
      */
-    private int cycleDuration = 600;
+    final private int cycleDuration = 600;
     private int cycleTime = 0;
 
 
     public Game() {
         heroAircraft = HeroAircraft.getInstance();
-
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
@@ -84,20 +87,10 @@ public class Game extends JPanel {
             // 周期性执行（控制频率）
             if (timeCountAndNewCycleJudge()) {
                 // Green `TIME`
-                System.out.println("\033[32mTIME:\033[0m " + Integer.toString(time));
+                System.out.println("\033[32mTIME:\033[0m " + time);
                 // new enemy generate
                 if (enemyAircrafts.size() < enemyMaxNumber) {
-                    enemyAircrafts.add(
-                        // TODO: need refactor
-                        // generate mobEnemy or EliteEnemy
-                        (int) (Math.random() * 2) == 0?
-                            new MobEnemy((int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())) * 1,
-                                (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2) * 1,
-                                0, 10, 30) :
-                            new EliteEnemy((int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())) * 1,
-                                (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2) * 1,
-                                0, 5, 30)
-                    );
+                    enemyAircrafts.add(GenerateEnemy());
                 }
                 // 飞机射出子弹
                 shootAction();
@@ -131,21 +124,18 @@ public class Game extends JPanel {
 
         };
 
-        /**
-         * 以固定延迟时间进行执行
-         * 本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
-         */
+         //以固定延迟时间进行执行。本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
         executorService.scheduleWithFixedDelay(task, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
 
     }
 
-    /************************
-     *      Action 各部分
-     ************************/
+    //***********************
+    //      Action 各部分
+    //***********************
 
     private boolean timeCountAndNewCycleJudge() {
         cycleTime += timeInterval;
-        if (cycleTime >= cycleDuration && cycleTime - timeInterval < cycleTime) {
+        if (cycleTime >= cycleDuration) {
             // 跨越到新的周期
             cycleTime %= cycleDuration;
             return true;
@@ -224,27 +214,9 @@ public class Game extends JPanel {
                     enemyAircraft.decreaseHp(bullet.getPower());
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
-                        // TODO: need refactor
                         boolean isElite = enemyAircraft instanceof EliteEnemy;
                         if (isElite) {
-                            int x = enemyAircraft.getLocationX();
-                            int y = enemyAircraft.getLocationY();
-                            // move like a bullet
-                            int speed = enemyAircraft.shoot().get(0).getSpeedY();
-                            switch ((int) (Math.random() * 5 + 1)) {
-                                case 1: // blood
-                                    props.add(new BloodProp(x, y, 0, speed));
-                                    // System.out.println("Blood Prop generated");
-                                    break;
-                                case 2: // bomb
-                                    props.add(new BombProp(x, y, 0, speed));
-                                    // System.out.println("Bomb Prop generated");
-                                    break;
-                                case 3: // FireSupply
-                                    props.add(new BulletProp(x, y, 0, speed));
-                                    // System.out.println("Bullet Prop generated");
-                                default: // do nothing
-                            }
+                            GenerateProp((EliteEnemy) enemyAircraft);
                         }
                         score += isElite ? 20 : 10;
                     }
@@ -260,21 +232,63 @@ public class Game extends JPanel {
         // 相撞，我方获得道具，道具生效
         for (AbstractProp prop : props) {
             if (prop.crash(heroAircraft) || heroAircraft.crash(prop)) {
-                String propPrompt = new String("\033[96mPROP:\033[0m");
-                if (prop instanceof BloodProp) {
-                    heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
-                    if (heroAircraft.getHp() > heroAircraft.getMaxHp())
-                        heroAircraft.decreaseHp(heroAircraft.getHp() - heroAircraft.getMaxHp());
-                    System.out.println(propPrompt + "BloodSupply active");
-                } else if (prop instanceof BombProp) {
-                    System.out.println(propPrompt + "BombSupply active");
-                } else if (prop instanceof BulletProp) {
-                    System.out.println(propPrompt + "BulletSupply active");
-                }
+                ApplyProp(prop);
                 prop.vanish();
             }
         }
 
+    }
+
+    /**
+     * 生成敌机
+     */
+    private AbstractAircraft GenerateEnemy() {
+        int x = (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth()));
+        int y = (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2);
+        return ((int) (Math.random() * 2) == 0 ?
+            new EliteFactory().CreateEnemy(x, y, 0, 5, 30) :
+            new MobFactory().CreateEnemy(x, y, 0, 10, 30));
+    }
+
+    /**
+     * 生成道具
+     */
+    private void GenerateProp(EliteEnemy enemyAircraft) {
+        int x = enemyAircraft.getLocationX();
+        int y = enemyAircraft.getLocationY();
+        // move like a bullet
+        int speed = enemyAircraft.shoot().get(0).getSpeedY();
+        switch ((int) (Math.random() * 5 + 1)) {
+            case 1: // blood
+                props.add(new BloodFactory().CreateProp(x, y, 0, speed));
+                // System.out.println("Blood Prop generated");
+                break;
+            case 2: // bomb
+                props.add(new BombFactory().CreateProp(x, y, 0, speed));
+                // System.out.println("Bomb Prop generated");
+                break;
+            case 3: // FireSupply
+                props.add(new BulletFactory().CreateProp(x, y, 0, speed));
+                // System.out.println("Bullet Prop generated");
+            default: // do nothing
+        }
+    }
+
+    /**
+     * 道具产生效果
+     */
+    private void ApplyProp(AbstractProp prop) {
+        String propPrompt = "\033[96mPROP:\033[0m";
+        if (prop instanceof BloodProp) {
+            heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
+            if (heroAircraft.getHp() > heroAircraft.getMaxHp())
+                heroAircraft.decreaseHp(heroAircraft.getHp() - heroAircraft.getMaxHp());
+            System.out.println(propPrompt + "BloodSupply active");
+        } else if (prop instanceof BombProp) {
+            System.out.println(propPrompt + "BombSupply active");
+        } else if (prop instanceof BulletProp) {
+            System.out.println(propPrompt + "BulletSupply active");
+        }
     }
 
     /**
@@ -294,15 +308,13 @@ public class Game extends JPanel {
     }
 
 
-    /************************
-     *      Paint 各部分
-     ************************/
+    //***********************
+    //      Paint 各部分
+    //***********************/
 
     /**
      * 重写paint方法
      * 通过重复调用paint方法，实现游戏动画
-     *
-     * @param g
      */
     @Override
     public void paint(Graphics g) {

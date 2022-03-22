@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * boss敌机，固定不动，分散式子弹
  *
- * @author huang
+ * @author Huang
  */
 // TODO: 尚未开始实现
 public class BossEnemy extends AbstractAircraft {

@@ -6,7 +6,7 @@ package edu.hitsz.prop;
  * @author huang
  */
 public class BloodProp extends AbstractProp {
-    private int blood = 50; // 加血量
+    final private int blood = 50; // 加血量
 
     public BloodProp(int locationX, int locationY, int speedX, int speedY) {
         super(locationX, locationY, speedX, speedY);

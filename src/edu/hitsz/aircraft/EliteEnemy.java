@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 精英敌机，可发射子弹
  *
- * @author huang
+ * @author Huang
  */
 public class EliteEnemy extends AbstractAircraft {
     //private int shootNum = 1; // 子弹一次发射数量
@@ -34,7 +34,6 @@ public class EliteEnemy extends AbstractAircraft {
         List<BaseBullet> res = new LinkedList<>();
         int speedX = 0;
         int speedY = this.getSpeedY() + direction * 5;
-        BaseBullet baseBullet;
         res.add(new EnemyBullet(this.getLocationX(),
             this.getLocationY() + direction * 2, speedX, speedY, power));
         return res;

@@ -12,9 +12,9 @@ import java.awt.event.MouseEvent;
  * @author hitsz
  */
 public class HeroController {
-    private Game game;
-    private HeroAircraft heroAircraft;
-    private MouseAdapter mouseAdapter;
+    final private Game game;
+    final private HeroAircraft heroAircraft;
+    final private MouseAdapter mouseAdapter;
 
     public HeroController(Game game, HeroAircraft heroAircraft) {
         this.game = game;

@@ -3,7 +3,7 @@ package edu.hitsz.bullet;
 /**
  * 敌机子弹
  *
- * @Author hitsz
+ * @author Huang
  */
 public class EnemyBullet extends BaseBullet {
 

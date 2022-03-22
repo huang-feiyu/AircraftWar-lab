@@ -1,5 +1,6 @@
 package edu.hitsz.aircraft;
 
+import edu.hitsz.aircraft.AbstractAircraft;
 import edu.hitsz.application.Main;
 import edu.hitsz.bullet.BaseBullet;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * 普通敌机
  * 不可射击
  *
- * @author hitsz
+ * @author Huang
  */
 public class MobEnemy extends AbstractAircraft {
 
