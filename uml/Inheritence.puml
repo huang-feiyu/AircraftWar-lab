@@ -5,20 +5,20 @@
 'composition: *--
 'aggregation: o--
 '.. => dotted line
-abstract class FlyingObject
+abstract class AbstractFlyingObject
 {
-    # int locationX
-    # int locationY
-    # int speedX
-    # int speedY
-    # BufferedImage image
-    # int width
-    # int height
-    # boolean isValid
+    # locationX:int
+    # locationY:int
+    # speedX:int
+    # speedY:int
+    # image:BufferedImage
+    # width:int
+    # height:int
+    # isValid:boolean
 
-    + FlyingObject(int locationX, int locationY, int speedX, int speedY):void
+    + AbstractFlyingObject(int locationX, int locationY, int speedX, int speedY)
     + forward():void
-    + crash(FlyingObject flyingObject):boolean
+    + crash(AbstractFlyingObject flyingObject):boolean
     + setLocation(double locationX, double locationY):void
     + getLocationX():int
     + getLocationY():int
@@ -31,101 +31,102 @@ abstract class FlyingObject
 }
 abstract class AbstractAircraft
 {
-	# int maxHp
-    # int hp
-    + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp):void
+	# maxHp:int
+    # hp:int
+    + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
     + decreaseHp(int decrease):void
     + getHp():int
     + {abstract} shoot():List<Bullet>
  }
 
-abstract class AbstractBullet
+abstract class BaseBullet
 {
-    - int power
-    + AbstractBullet(int locationX, int locationY, int speedX, int speedY, int power):void
+    - power:int
+    + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
     + forward():void
 	+ getPower():int
 }
 
 abstract class AbstractProp
 {
-    + AbstractProp(int locationX, int locationY, int speedX, int speedY, int power):void
+    + AbstractProp(int locationX, int locationY, int speedX, int speedY, int power)
     + forward():void
 }
 
-FlyingObject <|-- AbstractAircraft
-FlyingObject <|-- AbstractBullet
-FlyingObject <|-- AbstractProp
+AbstractFlyingObject <|-- AbstractAircraft
+AbstractFlyingObject <|-- BaseBullet
+AbstractFlyingObject <|-- AbstractProp
 
 AbstractAircraft <|-- HeroAircraft
 AbstractAircraft <|-- MobEnemy
 AbstractAircraft <|-- EliteEnemy
 AbstractAircraft <|-- BossEnemy
 
-AbstractBullet <|-- HeroBullet
-AbstractBullet <|-- EnemyBullet
+BaseBullet <|-- HeroBullet
+BaseBullet <|-- EnemyBullet
 
 AbstractProp <|-- BloodProp
 AbstractProp <|-- BombProp
 AbstractProp <|-- BulletProp
 
 class HeroAircraft {
-    - int shootNum
-    - int power
-    - int direction
-    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp):void
+    - shootNum:int
+    - power:int
+    - direction:int
+    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
-    + shoot():List<Bullet>
+    + shoot():List<BaseBullet>
+    + getMaxHp():int
 }
 
 class MobEnemy {
-    + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp):void
+    + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
-    + shoot():List<Bullet>
+    + shoot():List<BaseBullet>
 }
 
 class EliteEnemy {
-    - int power
-    - int direction
-    + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp):void
+    - power:int
+    - direction:int
+    + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
-    + shoot():List<Bullet>
+    + shoot():List<BaseBullet>
 }
 
 class BossEnemy {
-    - int shootNum
-    - int power
-    - int direction
-    + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp):void
+    - shootNum:int
+    - power:int
+    - direction:int
+    + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
-    + shoot():List<Bullet>
+    + shoot():List<BaseBullet>
 }
 
 class HeroBullet {
     + HeroBullet(int locationX, int locationY,
-     int speedX, int speedY, int power):void
+     int speedX, int speedY, int power)
 }
 
 class EnemyBullet {
     + EnemyBullet(int locationX, int locationY,
-     int speedX, int speedY, int power):void
+     int speedX, int speedY, int power)
 }
 
 class BloodProp {
-    - int blood
+    - blood:int
     + BloodProp(int locationX, int locationY,
-     int speedX, int speedY):void
+     int speedX, int speedY)
     + getBlood():int
 }
 
 class BombProp {
     + BombProp(int locationX, int locationY,
-     int speedX, int speedY):void
+     int speedX, int speedY)
 }
 
 class BulletProp {
     + BulletProp(int locationX, int locationY,
-     int speedX, int speedY):void
+     int speedX, int speedY)
 }
 
 @enduml

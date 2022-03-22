@@ -1,6 +1,6 @@
 package edu.hitsz.aircraft;
 
-import edu.hitsz.bullet.AbstractBullet;
+import edu.hitsz.bullet.BaseBullet;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class BossEnemy extends AbstractAircraft {
     }
 
     @Override
-    public List<AbstractBullet> shoot() {
+    public List<BaseBullet> shoot() {
         return null;
     }
 }
