@@ -5,7 +5,7 @@ import edu.hitsz.prop.BloodProp;
 
 public class BloodFactory implements  PropFactory {
     @Override
-    public AbstractProp CreateProp(int locationX, int locationY, int speedX, int speedY) {
+    public AbstractProp createProp(int locationX, int locationY, int speedX, int speedY) {
         return new BloodProp(locationX, locationY, speedX, speedY);
     }
 }

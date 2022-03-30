@@ -149,7 +149,6 @@ public class Game extends JPanel {
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
             // only elite can shoot now
             if (enemyAircraft instanceof EliteEnemy) {
-                // System.out.println("Elite shoot");
                 enemyBullets.addAll(enemyAircraft.shoot());
             }
         }
@@ -190,7 +189,9 @@ public class Game extends JPanel {
     private void crashCheckAction() {
         // 敌机攻击英雄
         for (BaseBullet bullet : enemyBullets) {
-            if (bullet.notValid()) continue;
+            if (bullet.notValid()) {
+                continue;
+            }
             if (heroAircraft.crash(bullet)) {
                 heroAircraft.decreaseHp(bullet.getPower());
                 bullet.vanish();
@@ -246,8 +247,8 @@ public class Game extends JPanel {
         int x = (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth()));
         int y = (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2);
         return ((int) (Math.random() * 2) == 0 ?
-            new EliteFactory().CreateEnemy(x, y, 0, 5, 30) :
-            new MobFactory().CreateEnemy(x, y, 0, 10, 30));
+            new EliteFactory().createEnemy(x, y, 0, 5, 30) :
+            new MobFactory().createEnemy(x, y, 0, 10, 30));
     }
 
     /**
@@ -260,13 +261,13 @@ public class Game extends JPanel {
         int speed = enemyAircraft.shoot().get(0).getSpeedY();
         switch ((int) (Math.random() * 5 + 1)) {
             case 1: // blood
-                props.add(new BloodFactory().CreateProp(x, y, 0, speed));
+                props.add(new BloodFactory().createProp(x, y, 0, speed));
                 break;
             case 2: // bomb
-                props.add(new BombFactory().CreateProp(x, y, 0, speed));
+                props.add(new BombFactory().createProp(x, y, 0, speed));
                 break;
             case 3: // FireSupply
-                props.add(new BulletFactory().CreateProp(x, y, 0, speed));
+                props.add(new BulletFactory().createProp(x, y, 0, speed));
             default: // do nothing
         }
     }
@@ -278,8 +279,6 @@ public class Game extends JPanel {
         String propPrompt = "\033[96mPROP:\033[0m";
         if (prop instanceof BloodProp) {
             heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
-            if (heroAircraft.getHp() > heroAircraft.getMaxHp())
-                heroAircraft.decreaseHp(heroAircraft.getHp() - heroAircraft.getMaxHp());
             System.out.println(propPrompt + "BloodSupply active");
         } else if (prop instanceof BombProp) {
             System.out.println(propPrompt + "BombSupply active");

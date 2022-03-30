@@ -2,6 +2,9 @@ package edu.hitsz.tool.factory.prop;
 
 import edu.hitsz.prop.AbstractProp;
 
+/**
+ * @author Huang
+ */
 public interface PropFactory {
-    AbstractProp CreateProp(int locationX, int locationY, int speedX, int speedY);
+    AbstractProp createProp(int locationX, int locationY, int speedX, int speedY);
 }

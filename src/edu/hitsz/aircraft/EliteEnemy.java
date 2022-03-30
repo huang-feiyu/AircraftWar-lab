@@ -13,15 +13,15 @@ import java.util.List;
  * @author Huang
  */
 public class EliteEnemy extends AbstractAircraft {
-    //private int shootNum = 1; // 子弹一次发射数量
-    private int power = 5; // 子弹伤害
-    private int direction = 1; // 子弹射击方向 (向上发射：1，向下发射：-1)
+    private final int power = 5; // 子弹伤害
+    private final int direction = 1; // 子弹射击方向 (向上发射：1，向下发射：-1)
 
     public EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         // System.out.println("Elite init");
     }
 
+    @Override
     public void forward() {
         super.forward();
         if (locationY >= Main.WINDOW_HEIGHT) {
