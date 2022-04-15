@@ -5,7 +5,7 @@ import edu.hitsz.prop.BombProp;
 
 public class BombFactory implements PropFactory {
     @Override
-    public AbstractProp createProp(int locationX, int locationY, int speedX, int speedY) {
-        return new BombProp(locationX, locationY, speedX, speedY);
+    public AbstractProp createProp(int locationX, int locationY) {
+        return new BombProp(locationX, locationY, 0, 8);
     }
 }

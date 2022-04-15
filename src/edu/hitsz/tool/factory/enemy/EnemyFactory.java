@@ -6,5 +6,8 @@ import edu.hitsz.aircraft.AbstractAircraft;
  * @author Huang
  */
 public interface EnemyFactory {
-    AbstractAircraft createEnemy(int locationX, int locationY, int speedX, int speedY, int hp);
+    /**
+     * 创建敌机
+     */
+    AbstractAircraft createEnemy();
 }

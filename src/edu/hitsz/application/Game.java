@@ -244,11 +244,9 @@ public class Game extends JPanel {
      * 生成敌机
      */
     private AbstractAircraft generateEnemy() {
-        int x = (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth()));
-        int y = (int) (Math.random() * Main.WINDOW_HEIGHT * 0.2);
         return ((int) (Math.random() * 2) == 0 ?
-            new EliteFactory().createEnemy(x, y, 0, 5, 30) :
-            new MobFactory().createEnemy(x, y, 0, 10, 30));
+            new EliteFactory().createEnemy() :
+            new MobFactory().createEnemy());
     }
 
     /**
@@ -260,14 +258,17 @@ public class Game extends JPanel {
         // move like a bullet
         int speed = enemyAircraft.shoot().get(0).getSpeedY();
         switch ((int) (Math.random() * 5 + 1)) {
-            case 1: // blood
-                props.add(new BloodFactory().createProp(x, y, 0, speed));
+            case 1:
+                // blood
+                props.add(new BloodFactory().createProp(x, y));
                 break;
-            case 2: // bomb
-                props.add(new BombFactory().createProp(x, y, 0, speed));
+            case 2:
+                // bomb
+                props.add(new BombFactory().createProp(x, y));
                 break;
-            case 3: // FireSupply
-                props.add(new BulletFactory().createProp(x, y, 0, speed));
+            case 3:
+                // FireSupply
+                props.add(new BulletFactory().createProp(x, y));
             default: // do nothing
         }
     }
