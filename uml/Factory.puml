@@ -6,7 +6,7 @@ abstract class AbstractAircraft {
 }
 
 interface EnemyFactory {
-    + CreateEnemy(int locationX, int locationY, int speedX, int speedY, int hp):AbstractAircraft
+    + CreateEnemy():AbstractAircraft
 }
 
 class MobFactory {
@@ -48,7 +48,7 @@ abstract class AbstractProp {
 }
 
 interface PropFactory {
-    + CreateProp(int locationX, int locationY, int speedX, int speedY):AbstractProp
+    + CreateProp(int locationX, int locationY):AbstractProp
 }
 
 class BloodFactory {

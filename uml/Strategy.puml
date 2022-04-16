@@ -1,0 +1,39 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Game {}
+
+class BulletContext {
+    - strategy: BulletStrategy
+    + BulletContext(BulletStrategy strategy)
+    + getStrategy(): BulletStrategy
+    + setStrategy(BulletStrategy strategy): void
+    + executeStrategy(List<BaseBullet>):List<BaseBullet>
+}
+
+interface BulletStrategy {
+    + ballisticChange(List<BaseBullet>):List<BaseBullet>
+}
+
+class StraightShoot {
+    + ballisticChange(List<BaseBullet>):List<BaseBullet>
+}
+
+class ScatterShoot {
+    + ballisticChange(List<BaseBullet>):List<BaseBullet>
+}
+
+class BossShoot {
+    + ballisticChange(List<BaseBullet>):List<BaseBullet>
+}
+
+Game --> BulletContext
+BulletContext o---> BulletStrategy
+StraightShoot .-|> BulletStrategy
+ScatterShoot .-|> BulletStrategy
+BossShoot .-|> BulletStrategy
+Game --> StraightShoot #line.dotted
+Game --> ScatterShoot #line.dotted
+Game --> BossShoot #line.dotted
+
+@enduml

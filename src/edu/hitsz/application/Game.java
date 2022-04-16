@@ -8,11 +8,16 @@ import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.prop.BloodProp;
 import edu.hitsz.prop.BombProp;
 import edu.hitsz.prop.BulletProp;
+import edu.hitsz.tool.factory.enemy.BossFactory;
 import edu.hitsz.tool.factory.enemy.EliteFactory;
 import edu.hitsz.tool.factory.enemy.MobFactory;
 import edu.hitsz.tool.factory.prop.BloodFactory;
 import edu.hitsz.tool.factory.prop.BombFactory;
 import edu.hitsz.tool.factory.prop.BulletFactory;
+import edu.hitsz.tool.strategy.BossShoot;
+import edu.hitsz.tool.strategy.BulletContext;
+import edu.hitsz.tool.strategy.ScatterShoot;
+import edu.hitsz.tool.strategy.StraightShoot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,10 +50,13 @@ public class Game extends JPanel {
     private final List<BaseBullet> heroBullets;
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
+    private final BulletContext heroBulletContext;
 
     final private int enemyMaxNumber = 5;
 
     private boolean gameOverFlag = false;
+    private int bossScoreThreshold = 500;
+    private int count = 0;
     private int score = 0;
     private int time = 0;
     /**
@@ -58,6 +66,7 @@ public class Game extends JPanel {
     final private int cycleDuration = 600;
     private int cycleTime = 0;
 
+    private FileOperator fileOperator;
 
     public Game() {
         heroAircraft = HeroAircraft.getInstance();
@@ -65,6 +74,8 @@ public class Game extends JPanel {
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
         props = new LinkedList<>();
+        heroBulletContext = new BulletContext(new StraightShoot());
+        fileOperator = new FileOperator();
 
         // Scheduled 线程池，用于定时任务调度
         executorService = new ScheduledThreadPoolExecutor(1);
@@ -91,6 +102,10 @@ public class Game extends JPanel {
                 // new enemy generate
                 if (enemyAircrafts.size() < enemyMaxNumber) {
                     enemyAircrafts.add(generateEnemy());
+                    if (this.score / bossScoreThreshold > count) {
+                        enemyAircrafts.add(new BossFactory().createEnemy());
+                        count++;
+                    }
                 }
                 // 飞机射出子弹
                 shootAction();
@@ -120,8 +135,10 @@ public class Game extends JPanel {
                 executorService.shutdown();
                 gameOverFlag = true;
                 System.out.println("\033[31mGame Over!\033[0m");
+                fileOperator.scoreDao.doAdd(new Date(), this.score, "Test");
+                fileOperator.scoreDao.printOut();
+                fileOperator.writeFile();
             }
-
         };
 
          //以固定延迟时间进行执行。本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
@@ -151,10 +168,14 @@ public class Game extends JPanel {
             if (enemyAircraft instanceof EliteEnemy) {
                 enemyBullets.addAll(enemyAircraft.shoot());
             }
+            if (enemyAircraft instanceof BossEnemy) {
+                enemyBullets.addAll(
+                    new BossShoot().ballisticChange(enemyAircraft.shoot()));
+            }
         }
 
         // 英雄射击
-        heroBullets.addAll(heroAircraft.shoot());
+        heroBullets.addAll(heroBulletContext.executeStrategy(heroAircraft.shoot()));
         // System.out.println("Hero shoot");
     }
 
@@ -215,11 +236,10 @@ public class Game extends JPanel {
                     enemyAircraft.decreaseHp(bullet.getPower());
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
-                        boolean isElite = enemyAircraft instanceof EliteEnemy;
-                        if (isElite) {
-                            generateProp((EliteEnemy) enemyAircraft);
+                        increaseScore(enemyAircraft);
+                        if (enemyAircraft.getClass() != MobEnemy.class) {
+                            generateProp(enemyAircraft);
                         }
-                        score += isElite ? 20 : 10;
                     }
                 }
                 // 英雄机 与 敌机 相撞，均损毁
@@ -237,7 +257,6 @@ public class Game extends JPanel {
                 prop.vanish();
             }
         }
-
     }
 
     /**
@@ -252,12 +271,10 @@ public class Game extends JPanel {
     /**
      * 生成道具
      */
-    private void generateProp(EliteEnemy enemyAircraft) {
+    private void generateProp(AbstractAircraft enemyAircraft) {
         int x = enemyAircraft.getLocationX();
         int y = enemyAircraft.getLocationY();
-        // move like a bullet
-        int speed = enemyAircraft.shoot().get(0).getSpeedY();
-        switch ((int) (Math.random() * 5 + 1)) {
+        switch ((int) (Math.random() * 10 + 1)) {
             case 1:
                 // blood
                 props.add(new BloodFactory().createProp(x, y));
@@ -284,8 +301,28 @@ public class Game extends JPanel {
         } else if (prop instanceof BombProp) {
             System.out.println(propPrompt + "BombSupply active");
         } else if (prop instanceof BulletProp) {
+            heroAircraft.increaseShootNum(2);
+            // 每获得一次道具，更换一次弹道
+            heroBulletContext.setStrategy(
+                heroBulletContext.getStrategy().getClass() == ScatterShoot.class ?
+                new StraightShoot() : new ScatterShoot());
             System.out.println(propPrompt + "BulletSupply active");
         }
+    }
+
+    /**
+     * 干掉敌机，增加分数
+     */
+    private void increaseScore(AbstractAircraft enemyAircraft) {
+        int ans = 0;
+        if (MobEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 10;
+        } else if (EliteEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 20;
+        } else if (BossEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 100;
+        }
+        this.score += ans;
     }
 
     /**
@@ -332,7 +369,6 @@ public class Game extends JPanel {
         // 这样子弹显示在飞机的下层
         paintImageWithPositionRevised(g, enemyBullets);
         paintImageWithPositionRevised(g, heroBullets);
-
         paintImageWithPositionRevised(g, enemyAircrafts);
 
         g.drawImage(ImageManager.HERO_IMAGE, heroAircraft.getLocationX() - ImageManager.HERO_IMAGE.getWidth() / 2,

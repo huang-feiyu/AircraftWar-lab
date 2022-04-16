@@ -37,6 +37,10 @@ public abstract class BaseBullet extends AbstractFlyingObject {
         }
     }
 
+    public void setSpeedX(int speedX) {
+        this.speedX = speedX;
+    }
+
     public int getPower() {
         return power;
     }

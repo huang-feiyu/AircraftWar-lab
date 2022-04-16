@@ -38,7 +38,7 @@ public class HeroAircraft extends AbstractAircraft {
         if (instance == null) {
             instance = new HeroAircraft(Main.WINDOW_WIDTH / 2,
                 Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
-                0, 0, 100);
+                0, 0, 1000);
         }
         return instance;
     }
@@ -69,4 +69,9 @@ public class HeroAircraft extends AbstractAircraft {
         return super.maxHp;
     }
 
+    public void increaseShootNum(int num) {
+        if (this.shootNum < 7) {
+            this.shootNum += num;
+        }
+    }
 }

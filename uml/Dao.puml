@@ -1,0 +1,45 @@
+@startuml
+
+class FileOperator {
+    - scoreDao: ScoreDaoImpl
+    - path: String
+    + FileOperator()
+    + WriteFile():void
+    - ReadFile():void
+}
+
+interface ScoreDao {
+    + findByName(String name): List<Score>
+    + getAllScores(): List<Score>
+    + doAdd(Score score): void
+    + doAdd(Date time, int score, String name): void
+    + doDelete((Date time): void
+}
+
+class ScoreDaoImpl {
+    - scores:List<Score>
+    + ScoreDaoImpl()
+    + findByName(String name): List<Score>
+    + getAllScores(): List<Score>
+    + doDelete(Date time): void
+    + doAdd(Score score): void
+    + doAdd(Date time, int score, String name): void
+    + printOut(): void
+    + parseString(String str): Score
+}
+
+class Score {
+    - score: int
+    - scoreTime: Date
+    - userName: String
+    + Score(int score, Date time, String name)
+    + getScore(): int
+    + getScoreTime(): Date
+    + printOut(): String
+}
+
+ScoreDao <|-. ScoreDaoImpl
+FileOperator .-> ScoreDao
+ScoreDaoImpl -> Score
+
+@enduml
