@@ -7,11 +7,13 @@ import java.util.List;
  * @author Huang
  */
 public interface ScoreDao {
-    List<Score> findByName(String name);
-
     List<Score> getAllScores();
 
-    void doAdd(Date time, int score, String name);
+    List<Score> findByName(String name);
+
+    List<Score> findByDifficulty(int difficulty);
+
+    void doAdd(Date time, int score, String name, int difficulty);
 
     void doAdd(Score score);
 

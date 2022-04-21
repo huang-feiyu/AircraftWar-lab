@@ -70,8 +70,6 @@ public class HeroAircraft extends AbstractAircraft {
     }
 
     public void increaseShootNum(int num) {
-        if (this.shootNum < 7) {
-            this.shootNum += num;
-        }
+        this.shootNum += num;
     }
 }

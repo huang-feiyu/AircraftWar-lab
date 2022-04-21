@@ -23,13 +23,24 @@ public class ScoreDaoImpl implements ScoreDao {
     }
 
     @Override
+    public List<Score> findByDifficulty(int difficulty) {
+        List<Score> ans = new LinkedList<>();
+        for (Score score : scores) {
+            if (score.getDifficulty() == difficulty) {
+                ans.add(score);
+            }
+        }
+        return ans;
+    }
+
+    @Override
     public List<Score> getAllScores() {
         return scores;
     }
 
     @Override
-    public void doAdd(Date time, int score, String name) {
-        Score theScore = new Score(score, time, name);
+    public void doAdd(Date time, int score, String name, int difficulty) {
+        Score theScore = new Score(score, time, name, difficulty);
         scores.add(theScore);
     }
 
@@ -56,6 +67,6 @@ public class ScoreDaoImpl implements ScoreDao {
     public Score parseString(String str) {
         String[] strings = str.split(" ");
         return new Score(Integer.parseInt(strings[0]),
-            new Date(Long.parseLong(strings[1])), strings[2]);
+            new Date(Long.parseLong(strings[1])), strings[2], Integer.parseInt(strings[3]));
     }
 }
