@@ -51,11 +51,15 @@ public class Game extends JPanel {
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
     private final BulletContext heroBulletContext;
+    private final Stack<Integer> bulletPropTimeStack;
 
     final private int enemyMaxNumber = 5;
+    final private int bossScoreThreshold = 500; // boss生成阈值
+    final private int bulletPropDuration = 1200; // 道具生效时间
 
     private boolean gameOverFlag = false;
-    private int bossScoreThreshold = 500;
+    private boolean musicOnFlag = true;
+    private int bossOnCount = 0;
     private int count = 0;
     private int score = 0;
     private int time = 0;
@@ -66,7 +70,8 @@ public class Game extends JPanel {
     final private int cycleDuration = 600;
     private int cycleTime = 0;
 
-    private FileOperator fileOperator;
+    private final FileOperator fileOperator;
+    private final MusicManager musicManager;
 
     public Game() {
         heroAircraft = HeroAircraft.getInstance();
@@ -74,15 +79,16 @@ public class Game extends JPanel {
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
         props = new LinkedList<>();
+        bulletPropTimeStack = new Stack<>();
         heroBulletContext = new BulletContext(new StraightShoot());
         fileOperator = new FileOperator();
+        musicManager = new MusicManager(musicOnFlag);
 
         // Scheduled 线程池，用于定时任务调度
-        executorService = new ScheduledThreadPoolExecutor(1);
+        executorService = new ScheduledThreadPoolExecutor(4);
 
         // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
-
     }
 
     /**
@@ -97,15 +103,9 @@ public class Game extends JPanel {
 
             // 周期性执行（控制频率）
             if (timeCountAndNewCycleJudge()) {
-                // Green `TIME`
                 System.out.println("\033[32mTIME:\033[0m " + time);
-                // new enemy generate
                 if (enemyAircrafts.size() < enemyMaxNumber) {
-                    enemyAircrafts.add(generateEnemy());
-                    if (this.score / bossScoreThreshold > count) {
-                        enemyAircrafts.add(new BossFactory().createEnemy());
-                        count++;
-                    }
+                    enemyAircrafts.addAll(generateEnemy());
                 }
                 // 飞机射出子弹
                 shootAction();
@@ -126,24 +126,26 @@ public class Game extends JPanel {
             // 后处理
             postProcessAction();
 
-            //每个时刻重绘界面
+            // 每个时刻重绘界面
             repaint();
 
             // 游戏结束检查
-            if (heroAircraft.getHp() <= 0) {
-                // 游戏结束
-                executorService.shutdown();
-                gameOverFlag = true;
-                System.out.println("\033[31mGame Over!\033[0m");
-                fileOperator.scoreDao.doAdd(new Date(), this.score, "Test");
-                fileOperator.scoreDao.printOut();
-                fileOperator.writeFile();
-            }
+            gameOverCheckAction();
         };
 
-         //以固定延迟时间进行执行。本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
+        // 以固定延迟时间进行执行。本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
         executorService.scheduleWithFixedDelay(task, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
-
+        executorService.scheduleAtFixedRate(() -> {
+            for (int t : bulletPropTimeStack) {
+                if (time - t >= bulletPropDuration) {
+                    bulletPropTimeStack.pop();
+                    heroAircraft.increaseShootNum(-2);
+                    heroBulletContext.setStrategy(new StraightShoot());
+                    System.out.println("\033[96mPROP:\033[0mBulletSupply \033[31munactive\033[0m");
+                    if (bulletPropTimeStack.empty()) {
+                        break;
+                    }
+                }}}, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
     }
 
     //***********************
@@ -176,7 +178,7 @@ public class Game extends JPanel {
 
         // 英雄射击
         heroBullets.addAll(heroBulletContext.executeStrategy(heroAircraft.shoot()));
-        // System.out.println("Hero shoot");
+        musicManager.bullet();
     }
 
     private void bulletsMoveAction() {
@@ -235,6 +237,7 @@ public class Game extends JPanel {
                     // 敌机损失一定生命值
                     enemyAircraft.decreaseHp(bullet.getPower());
                     bullet.vanish();
+                    musicManager.bulletHit();
                     if (enemyAircraft.notValid()) {
                         increaseScore(enemyAircraft);
                         if (enemyAircraft.getClass() != MobEnemy.class) {
@@ -260,72 +263,6 @@ public class Game extends JPanel {
     }
 
     /**
-     * 生成敌机
-     */
-    private AbstractAircraft generateEnemy() {
-        return ((int) (Math.random() * 2) == 0 ?
-            new EliteFactory().createEnemy() :
-            new MobFactory().createEnemy());
-    }
-
-    /**
-     * 生成道具
-     */
-    private void generateProp(AbstractAircraft enemyAircraft) {
-        int x = enemyAircraft.getLocationX();
-        int y = enemyAircraft.getLocationY();
-        switch ((int) (Math.random() * 10 + 1)) {
-            case 1:
-                // blood
-                props.add(new BloodFactory().createProp(x, y));
-                break;
-            case 2:
-                // bomb
-                props.add(new BombFactory().createProp(x, y));
-                break;
-            case 3:
-                // FireSupply
-                props.add(new BulletFactory().createProp(x, y));
-            default: // do nothing
-        }
-    }
-
-    /**
-     * 道具产生效果
-     */
-    private void applyProp(AbstractProp prop) {
-        String propPrompt = "\033[96mPROP:\033[0m";
-        if (prop instanceof BloodProp) {
-            heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
-            System.out.println(propPrompt + "BloodSupply active");
-        } else if (prop instanceof BombProp) {
-            System.out.println(propPrompt + "BombSupply active");
-        } else if (prop instanceof BulletProp) {
-            heroAircraft.increaseShootNum(2);
-            // 每获得一次道具，更换一次弹道
-            heroBulletContext.setStrategy(
-                heroBulletContext.getStrategy().getClass() == ScatterShoot.class ?
-                new StraightShoot() : new ScatterShoot());
-            System.out.println(propPrompt + "BulletSupply active");
-        }
-    }
-
-    /**
-     * 干掉敌机，增加分数
-     */
-    private void increaseScore(AbstractAircraft enemyAircraft) {
-        int ans = 0;
-        if (MobEnemy.class.equals(enemyAircraft.getClass())) {
-            ans = 10;
-        } else if (EliteEnemy.class.equals(enemyAircraft.getClass())) {
-            ans = 20;
-        } else if (BossEnemy.class.equals(enemyAircraft.getClass())) {
-            ans = 100;
-        }
-        this.score += ans;
-    }
-
-    /**
      * 后处理：
      * 1. 删除无效的子弹
      * 2. 删除无效的敌机
@@ -339,6 +276,19 @@ public class Game extends JPanel {
         heroBullets.removeIf(AbstractFlyingObject::notValid);
         enemyAircrafts.removeIf(AbstractFlyingObject::notValid);
         props.removeIf(AbstractFlyingObject::notValid);
+    }
+
+    private void gameOverCheckAction() {
+        if (heroAircraft.getHp() <= 0) {
+            // 游戏结束
+            executorService.shutdown();
+            gameOverFlag = true;
+            System.out.println("\033[31mGame Over!\033[0m");
+            fileOperator.scoreDao.doAdd(new Date(), this.score, "Test", 0);
+            fileOperator.scoreDao.printOut();
+            fileOperator.writeFile();
+            musicManager.gameOver();
+        }
     }
 
 
@@ -402,5 +352,86 @@ public class Game extends JPanel {
         g.drawString("LIFE:" + this.heroAircraft.getHp(), x, y);
     }
 
+    //************************
+    //       子函数
+    //************************
+    /**
+     * 生成敌机
+     */
+    private List<AbstractAircraft> generateEnemy() {
+        List<AbstractAircraft> enemies = new ArrayList<>();
+        enemies.add(((int) (Math.random() * 2) == 0 ?
+            new EliteFactory().createEnemy() :
+            new MobFactory().createEnemy()));
+        if (this.score / bossScoreThreshold > count) {
+            enemies.add(new BossFactory().createEnemy());
+            count++;
+            bossOnCount++;
+        }
+        if (bossOnCount > 0) {
+            musicManager.bgmBoss();
+        } else {
+            musicManager.bgm();
+        }
+        return enemies;
+    }
+
+    /**
+     * 生成道具
+     */
+    private void generateProp(AbstractAircraft enemyAircraft) {
+        int x = enemyAircraft.getLocationX();
+        int y = enemyAircraft.getLocationY();
+        switch ((int) (Math.random() * 10 + 1)) {
+            case 1:
+                // blood
+                props.add(new BloodFactory().createProp(x, y));
+                break;
+            case 2:
+                // bomb
+                props.add(new BombFactory().createProp(x, y));
+                break;
+            case 3:
+                // FireSupply
+                props.add(new BulletFactory().createProp(x, y));
+            default: // do nothing
+        }
+    }
+
+    /**
+     * 道具产生效果
+     */
+    private void applyProp(AbstractProp prop) {
+        String propPrompt = "\033[96mPROP:\033[0m";
+        if (prop instanceof BloodProp) {
+            heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
+            System.out.println(propPrompt + "BloodSupply active");
+        } else if (prop instanceof BombProp) {
+            System.out.println(propPrompt + "BombSupply active");
+            musicManager.bomb();
+        } else if (prop instanceof BulletProp) {
+            heroAircraft.increaseShootNum(2);
+            bulletPropTimeStack.push(time);
+            heroBulletContext.setStrategy(new ScatterShoot());
+            System.out.println(propPrompt + "BulletSupply active");
+        }
+        musicManager.getSupply();
+    }
+
+    /**
+     * 干掉敌机，增加分数
+     */
+    private void increaseScore(AbstractAircraft enemyAircraft) {
+        int ans = 0;
+        if (MobEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 10;
+        } else if (EliteEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 20;
+        } else if (BossEnemy.class.equals(enemyAircraft.getClass())) {
+            ans = 100;
+            bossOnCount--;
+        }
+        this.score += ans;
+    }
 
 }
