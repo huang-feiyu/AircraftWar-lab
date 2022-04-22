@@ -1,4 +1,6 @@
-package edu.hitsz.tool.Dao;
+package edu.hitsz.score;
+
+import edu.hitsz.tool.DIFFICULTY;
 
 import java.util.Date;
 
@@ -9,9 +11,9 @@ public class Score implements Comparable<Score> {
     private int score;
     private Date scoreTime;
     private String userName;
-    private int difficulty;
+    private DIFFICULTY difficulty;
 
-    Score(int score, Date time, String name, int difficulty) {
+    Score(int score, Date time, String name, DIFFICULTY difficulty) {
         this.score = score;
         this.scoreTime = time;
         this.userName = name;
@@ -22,33 +24,43 @@ public class Score implements Comparable<Score> {
         return scoreTime;
     }
 
+    public String getScoreName() {
+        return userName;
+    }
+
     public int getScore() {
         return score;
     }
 
-    public int getDifficulty() {
+    public DIFFICULTY getDifficulty() {
         return difficulty;
     }
 
     public String printOut() {
+        int difficulty2int = 0;
+        switch (difficulty) {
+            case EASY: difficulty2int = 0; break;
+            case MEDIUM: difficulty2int = 1; break;
+            case DIFFICULT: difficulty2int = 2; break;
+            default:
+        }
         // 打印到文件中
-        return score + " " + scoreTime.getTime() + " " + userName + " " + difficulty +"\n";
+        return score + " " + scoreTime.getTime() + " " + userName + " " + difficulty2int +"\n";
     }
 
     @Override
     public String toString() {
-        // 打印到控制台
-        return "\033[32m" + userName + "\033[0m" + " \033[31m" + score + "\033[0m "
-            + scoreTime.toString() + " " + getDifficultyName();
+        // 打印到控制台&Table
+        return userName + ";" + score + ";" + scoreTime.toString() + ";" + getDifficultyName();
     }
 
     private String getDifficultyName() {
         switch (difficulty) {
-            case 0:
+            case EASY:
                 return "\033[35mEASY\033[0m";
-            case 1:
+            case MEDIUM:
                 return "\033[35mMEDIUM\033[0m";
-            case 2:
+            case DIFFICULT:
                 return "\033[35mDIFFICULT\033[0m";
             default:
                 return "";

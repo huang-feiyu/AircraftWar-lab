@@ -1,4 +1,4 @@
-package edu.hitsz.tool.strategy;
+package edu.hitsz.bullet.strategy;
 
 import edu.hitsz.bullet.BaseBullet;
 import java.util.List;

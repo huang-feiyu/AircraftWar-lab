@@ -1,4 +1,6 @@
-package edu.hitsz.tool.Dao;
+package edu.hitsz.score;
+
+import edu.hitsz.tool.DIFFICULTY;
 
 import java.util.Date;
 import java.util.List;
@@ -11,9 +13,9 @@ public interface ScoreDao {
 
     List<Score> findByName(String name);
 
-    List<Score> findByDifficulty(int difficulty);
+    List<Score> findByDifficulty(DIFFICULTY difficulty);
 
-    void doAdd(Date time, int score, String name, int difficulty);
+    void doAdd(Date time, int score, String name, DIFFICULTY difficulty);
 
     void doAdd(Score score);
 

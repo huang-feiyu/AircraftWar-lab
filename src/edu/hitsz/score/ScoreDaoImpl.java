@@ -1,9 +1,13 @@
-package edu.hitsz.tool.Dao;
+package edu.hitsz.score;
+
+import edu.hitsz.tool.DIFFICULTY;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+
+import static edu.hitsz.tool.DIFFICULTY.*;
 
 /**
  * @author Huang
@@ -15,7 +19,7 @@ public class ScoreDaoImpl implements ScoreDao {
     public List<Score> findByName(String name) {
         List<Score> ans = new LinkedList<>();
         for (Score score : scores) {
-            if (score.getScoreTime().equals(name)) {
+            if (score.getScoreName().equals(name)) {
                 ans.add(score);
             }
         }
@@ -23,7 +27,7 @@ public class ScoreDaoImpl implements ScoreDao {
     }
 
     @Override
-    public List<Score> findByDifficulty(int difficulty) {
+    public List<Score> findByDifficulty(DIFFICULTY difficulty) {
         List<Score> ans = new LinkedList<>();
         for (Score score : scores) {
             if (score.getDifficulty() == difficulty) {
@@ -39,7 +43,7 @@ public class ScoreDaoImpl implements ScoreDao {
     }
 
     @Override
-    public void doAdd(Date time, int score, String name, int difficulty) {
+    public void doAdd(Date time, int score, String name, DIFFICULTY difficulty) {
         Score theScore = new Score(score, time, name, difficulty);
         scores.add(theScore);
     }
@@ -51,7 +55,20 @@ public class ScoreDaoImpl implements ScoreDao {
 
     @Override
     public void doDelete(Date time) {
-        scores.removeIf(score -> score.getScoreTime().equals(time));
+        System.out.println("doDelete(Date time)" + time);
+        for (Score score : scores) {
+            if (score.getScoreTime().equals(time)) {
+                scores.remove(score);
+            }
+        }
+    }
+
+    public void doDelete(Score score) {
+        doDelete(score.getScoreTime());
+    }
+
+    public void doDelete(int row) {
+        scores.remove(row);
     }
 
     public void printOut() {
@@ -66,7 +83,14 @@ public class ScoreDaoImpl implements ScoreDao {
 
     public Score parseString(String str) {
         String[] strings = str.split(" ");
+        DIFFICULTY int2difficulty = EASY;
+        switch (Integer.parseInt(strings[3])) {
+            case 0: int2difficulty = EASY; break;
+            case 1: int2difficulty = MEDIUM; break;
+            case 2: int2difficulty = DIFFICULT; break;
+            default:
+        }
         return new Score(Integer.parseInt(strings[0]),
-            new Date(Long.parseLong(strings[1])), strings[2], Integer.parseInt(strings[3]));
+            new Date(Long.parseLong(strings[1])), strings[2], int2difficulty);
     }
 }

@@ -1,19 +1,15 @@
-package edu.hitsz.application;
-
-import edu.hitsz.tool.Dao.Score;
-import edu.hitsz.tool.Dao.ScoreDaoImpl;
+package edu.hitsz.score;
 
 import java.io.*;
-import java.util.Date;
 
 /**
  * @author Huang
  */
 public class FileOperator {
-    protected ScoreDaoImpl scoreDao;
+    public ScoreDaoImpl scoreDao;
     private String path = "./prop/Scores.txt";
 
-    FileOperator() {
+    public FileOperator() {
         scoreDao = new ScoreDaoImpl();
         readFile();
     }

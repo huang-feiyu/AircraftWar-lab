@@ -1,4 +1,4 @@
-package edu.hitsz.tool.factory.prop;
+package edu.hitsz.factory.prop;
 
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.prop.BombProp;
