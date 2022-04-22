@@ -2,6 +2,9 @@
 .idea/*
 out/*
 
+# prop
+prop/*
+
 # db dir
 ranklist_db
 
