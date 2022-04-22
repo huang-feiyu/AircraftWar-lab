@@ -2,22 +2,24 @@ package edu.hitsz.application;
 
 import edu.hitsz.aircraft.*;
 import edu.hitsz.aircraft.EliteEnemy;
+import edu.hitsz.score.FileOperator;
+import edu.hitsz.tool.DIFFICULTY;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.prop.BloodProp;
 import edu.hitsz.prop.BombProp;
 import edu.hitsz.prop.BulletProp;
-import edu.hitsz.tool.factory.enemy.BossFactory;
-import edu.hitsz.tool.factory.enemy.EliteFactory;
-import edu.hitsz.tool.factory.enemy.MobFactory;
-import edu.hitsz.tool.factory.prop.BloodFactory;
-import edu.hitsz.tool.factory.prop.BombFactory;
-import edu.hitsz.tool.factory.prop.BulletFactory;
-import edu.hitsz.tool.strategy.BossShoot;
-import edu.hitsz.tool.strategy.BulletContext;
-import edu.hitsz.tool.strategy.ScatterShoot;
-import edu.hitsz.tool.strategy.StraightShoot;
+import edu.hitsz.factory.enemy.BossFactory;
+import edu.hitsz.factory.enemy.EliteFactory;
+import edu.hitsz.factory.enemy.MobFactory;
+import edu.hitsz.factory.prop.BloodFactory;
+import edu.hitsz.factory.prop.BombFactory;
+import edu.hitsz.factory.prop.BulletFactory;
+import edu.hitsz.bullet.strategy.BossShoot;
+import edu.hitsz.bullet.strategy.BulletContext;
+import edu.hitsz.bullet.strategy.ScatterShoot;
+import edu.hitsz.bullet.strategy.StraightShoot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,13 +54,15 @@ public class Game extends JPanel {
     private final List<AbstractProp> props;
     private final BulletContext heroBulletContext;
     private final Stack<Integer> bulletPropTimeStack;
+    private final boolean musicOnFlag;
+    private final DIFFICULTY difficulty;
 
-    final private int enemyMaxNumber = 5;
-    final private int bossScoreThreshold = 500; // boss生成阈值
-    final private int bulletPropDuration = 1200; // 道具生效时间
+    private final int enemyMaxNumber = 5;
+    private final int bossScoreThreshold = 500; // boss生成阈值
+    private final int bulletPropDuration = 1200; // 道具生效时间
 
     private boolean gameOverFlag = false;
-    private boolean musicOnFlag = true;
+
     private int bossOnCount = 0;
     private int count = 0;
     private int score = 0;
@@ -70,10 +74,12 @@ public class Game extends JPanel {
     final private int cycleDuration = 600;
     private int cycleTime = 0;
 
-    private final FileOperator fileOperator;
     private final MusicManager musicManager;
 
-    public Game() {
+    public Game(boolean musicOnFlag, DIFFICULTY difficulty) {
+        this.musicOnFlag = musicOnFlag;
+        this.difficulty = difficulty;
+
         heroAircraft = HeroAircraft.getInstance();
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -81,8 +87,7 @@ public class Game extends JPanel {
         props = new LinkedList<>();
         bulletPropTimeStack = new Stack<>();
         heroBulletContext = new BulletContext(new StraightShoot());
-        fileOperator = new FileOperator();
-        musicManager = new MusicManager(musicOnFlag);
+        musicManager = new MusicManager(this.musicOnFlag);
 
         // Scheduled 线程池，用于定时任务调度
         executorService = new ScheduledThreadPoolExecutor(4);
@@ -284,10 +289,10 @@ public class Game extends JPanel {
             executorService.shutdown();
             gameOverFlag = true;
             System.out.println("\033[31mGame Over!\033[0m");
-            fileOperator.scoreDao.doAdd(new Date(), this.score, "Test", 0);
-            fileOperator.scoreDao.printOut();
-            fileOperator.writeFile();
             musicManager.gameOver();
+            synchronized (JFrame.class) {
+                JFrame.class.notify();
+            }
         }
     }
 
@@ -346,7 +351,7 @@ public class Game extends JPanel {
         int x = 10;
         int y = 25;
         g.setColor(new Color(16711680));
-        g.setFont(new Font("SansSerif", Font.BOLD, 22));
+        g.setFont(new Font("Consolas", Font.BOLD, 22));
         g.drawString("SCORE:" + this.score, x, y);
         y = y + 20;
         g.drawString("LIFE:" + this.heroAircraft.getHp(), x, y);
@@ -434,4 +439,7 @@ public class Game extends JPanel {
         this.score += ans;
     }
 
+    public int getScore() {
+        return score;
+    }
 }

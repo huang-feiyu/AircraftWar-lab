@@ -1,5 +1,9 @@
 package edu.hitsz.application;
 
+import edu.hitsz.gui.EndPanel;
+import edu.hitsz.gui.StartPanel;
+import edu.hitsz.tool.DIFFICULTY;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -27,9 +31,41 @@ public class Main {
             WINDOW_WIDTH, WINDOW_HEIGHT);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Game game = new Game();
+        // 开始游戏
+        StartPanel startPanel = new StartPanel();
+        frame.add(startPanel.gameMenuPanel);
+        frame.setVisible(true);
+        synchronized (startPanel.gameMenuPanel) {
+            try {
+                startPanel.gameMenuPanel.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 前置准备：进入游戏
+        frame.setVisible(false);
+        frame.remove(startPanel.gameMenuPanel);
+        System.out.println("\n\033[32m=========WELCOME!=========\033[0m");
+
+        // 开始游戏
+        Game game = new Game(startPanel.soundFlagOn, startPanel.difficulty);
         frame.add(game);
         frame.setVisible(true);
         game.action();
+        synchronized (JFrame.class) {
+            try {
+                JFrame.class.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        frame.remove(game);
+        frame.setVisible(false);
+
+        // 游戏结束
+        EndPanel endPanel = new EndPanel(game.getScore(), startPanel.difficulty);
+        frame.setContentPane(endPanel.endPanel);
+        frame.setVisible(true);
     }
 }

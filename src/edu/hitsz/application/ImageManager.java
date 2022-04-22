@@ -43,10 +43,10 @@ public class ImageManager {
     public static BufferedImage BOMB_PROP_IMAGE;
     public static BufferedImage BULLET_PROP_IMAGE;
 
+    public static String bgImg = "src/images/bg.jpg";
+
     static {
         try {
-
-            BACKGROUND_IMAGE = ImageIO.read(new FileInputStream("src/images/bg.jpg"));
 
             HERO_IMAGE = ImageIO.read(new FileInputStream("src/images/hero.png"));
             MOB_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/mob.png"));
