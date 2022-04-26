@@ -47,6 +47,7 @@ public class EndPanel {
                 int[] rows = scoreTable.getSelectedRows();
                 Arrays.sort(rows);
                 for (int row : rows) {
+                    // time 为唯一标识
                     fileOperator.scoreDao.doDelete(row);
                     System.out.println("\033[31mDelete\033[0m:" + (row + 1));
                 }
@@ -63,7 +64,6 @@ public class EndPanel {
         String[][] data = new String[tableData.size()][0];
         for (int i = 0; i < data.length; i++) {
             data[i] = new String[4];
-            // 亟待优化
             String[] temp = tableData.get(i).toString().split(";");
             data[i][0] = Integer.toString(i + 1);
             data[i][1] = temp[0]; data[i][2] = temp[1];

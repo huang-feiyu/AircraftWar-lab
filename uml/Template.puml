@@ -1,0 +1,40 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Game {
+    - double propProb
+    - double eliteEnemyProb
+    - int enemyMaxNumber
+    - int bulletPropDuration
+    - int bossScoreThreshold
+    - int bossHp
+    - boolean bossShowUp
+    + Game()
+    + action(): void
+    + {abstract} difficultyInit(): void
+    + {abstract} difficultyAction(): void
+}
+
+class EasyGame {
+    - ...
+    - difficultyInit(): void
+    - difficultyAction(): void
+}
+
+class MediumGame {
+    - ...
+    - difficultyInit(): void
+    - difficultyAction(): void
+}
+
+class DifficultGame {
+    - ...
+    - difficultyInit(): void
+    - difficultyAction(): void
+}
+
+EasyGame --|> Game
+MediumGame --|> Game
+DifficultGame --|> Game
+
+@enduml

@@ -9,21 +9,23 @@ class FileOperator {
 }
 
 interface ScoreDao {
-    + findByName(String name): List<Score>
     + getAllScores(): List<Score>
+    + findByName(String name): List<Score>
+    + findByDifficulty(DIFFICULTY difficulty): List<Score>
+    + doAdd(Date time, int score, String name, DIFFICULTY difficulty): void
     + doAdd(Score score): void
-    + doAdd(Date time, int score, String name): void
-    + doDelete((Date time): void
+    + doDelete(Date time): void
 }
 
 class ScoreDaoImpl {
-    - scores:List<Score>
-    + ScoreDaoImpl()
-    + findByName(String name): List<Score>
     + getAllScores(): List<Score>
-    + doDelete(Date time): void
+    + findByName(String name): List<Score>
+    + findByDifficulty(DIFFICULTY difficulty): List<Score>
+    + doAdd(Date time, int score, String name, DIFFICULTY difficulty): void
     + doAdd(Score score): void
-    + doAdd(Date time, int score, String name): void
+    + doDelete(Date time): void
+    + doDelete(Score score): void
+    + doDelete(int row): void
     + printOut(): void
     + parseString(String str): Score
 }
@@ -32,10 +34,14 @@ class Score {
     - score: int
     - scoreTime: Date
     - userName: String
+    - difficulty: DIFFICULTY
     + Score(int score, Date time, String name)
     + getScore(): int
+    + getDifficulty(): DIFFICULTY
     + getScoreTime(): Date
     + printOut(): String
+    + toString(): String
+    - getDifficultyName(): String
 }
 
 ScoreDao <|-. ScoreDaoImpl

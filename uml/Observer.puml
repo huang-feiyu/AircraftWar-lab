@@ -1,0 +1,29 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface BombListener {
+    + updateEnemy(List<AbstractAircraft> enemies): int
+    + updateBullet(List<BaseBullet> bullets): void
+}
+
+class BombImpl {
+    + updateEnemy(List<AbstractAircraft> enemies): int
+    + updateBullet(List<BaseBullet> bullets): void
+}
+
+class BombObserver {
+    - bombs: HashMap<BombProp, BombListener>
+    + addBomb(BombProp bomb): void
+    + removeBomb(BombProp bomb): void
+    + notifyBomb(BombProp bomb, List<AbstractFlyingObject>, List<AbstractFlyingObject>): int
+}
+
+class Game {
+}
+
+BombObserver <.- Game
+BombListener <--o BombObserver
+BombImpl -.-|> BombListener
+
+
+@enduml

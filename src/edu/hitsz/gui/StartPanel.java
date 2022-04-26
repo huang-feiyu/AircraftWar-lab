@@ -37,8 +37,6 @@ public class StartPanel {
         easyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ImageManager.bgImg = "src/images/bg.jpg";
-                chooseBgImage();
                 difficulty = DIFFICULTY.EASY;
                 System.out.println("\033[32mDifficulty: \033[0m" + difficulty);
                 synchronized (gameMenuPanel) {
@@ -49,9 +47,6 @@ public class StartPanel {
         mediumButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ImageManager.bgImg = ((int) (Math.random() * 2)) == 0 ?
-                    "src/images/bg2.jpg" : "src/images/bg3.jpg";
-                chooseBgImage();
                 difficulty = DIFFICULTY.MEDIUM;
                 System.out.println("\033[32mDifficulty: \033[0m" + difficulty);
                 synchronized (gameMenuPanel) {
@@ -62,9 +57,6 @@ public class StartPanel {
         difficultButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ImageManager.bgImg = ((int) (Math.random() * 2)) == 0 ?
-                    "src/images/bg4.jpg" : "src/images/bg5.jpg";
-                chooseBgImage();
                 difficulty = DIFFICULTY.DIFFICULT;
                 System.out.println("\033[32mDifficulty: \033[0m" + difficulty);
                 synchronized (gameMenuPanel) {
@@ -72,15 +64,6 @@ public class StartPanel {
                 }
             }
         });
-    }
-
-    private void chooseBgImage() {
-        try {
-            ImageManager.BACKGROUND_IMAGE = ImageIO.read(new FileInputStream(ImageManager.bgImg));
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        System.out.println("\033[32mBackground: \033[0m" + ImageManager.bgImg);
     }
 
     public static void main(String[] args) {

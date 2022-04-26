@@ -19,6 +19,7 @@ class EliteFactory {
 
 class BossFactory {
     + CreateEnemy():AbstractAircraft
+    + CreateEnemy(int bossHp):AbstractAircraft
 }
 
 class MobEnemy {

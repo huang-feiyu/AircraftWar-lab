@@ -1,9 +1,12 @@
-package edu.hitsz.application;
+package edu.hitsz.application.game;
 
 import edu.hitsz.aircraft.*;
 import edu.hitsz.aircraft.EliteEnemy;
-import edu.hitsz.score.FileOperator;
-import edu.hitsz.tool.DIFFICULTY;
+import edu.hitsz.application.HeroController;
+import edu.hitsz.application.ImageManager;
+import edu.hitsz.application.Main;
+import edu.hitsz.application.MusicManager;
+import edu.hitsz.observer.BombObserver;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.prop.AbstractProp;
@@ -21,9 +24,12 @@ import edu.hitsz.bullet.strategy.BulletContext;
 import edu.hitsz.bullet.strategy.ScatterShoot;
 import edu.hitsz.bullet.strategy.StraightShoot;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
@@ -33,7 +39,7 @@ import java.util.concurrent.*;
  *
  * @author hitsz
  */
-public class Game extends JPanel {
+public abstract class Game extends JPanel {
 
     private int backGroundTop = 0;
 
@@ -48,18 +54,14 @@ public class Game extends JPanel {
     final private int timeInterval = 40;
 
     private final HeroAircraft heroAircraft;
-    private final List<AbstractAircraft> enemyAircrafts;
+    private List<AbstractAircraft> enemyAircrafts;
     private final List<BaseBullet> heroBullets;
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
-    private final BulletContext heroBulletContext;
+    private BulletContext heroBulletContext;
     private final Stack<Integer> bulletPropTimeStack;
     private final boolean musicOnFlag;
-    private final DIFFICULTY difficulty;
 
-    private final int enemyMaxNumber = 5;
-    private final int bossScoreThreshold = 500; // boss生成阈值
-    private final int bulletPropDuration = 1200; // 道具生效时间
 
     private boolean gameOverFlag = false;
 
@@ -74,11 +76,23 @@ public class Game extends JPanel {
     final private int cycleDuration = 600;
     private int cycleTime = 0;
 
-    private final MusicManager musicManager;
+    /**
+     *  难度相关
+     */
+    double propProb = 0.5;
+    double eliteEnemyProb = 0.3;
+    int enemyMaxNumber = 5;
+    int bulletPropDuration = 1200; // 道具生效时间
+    int bossScoreThreshold = 500; // boss生成阈值
+    int bossHp = 1000;
+    boolean bossShowUp = true;
+    int bossCount = 0;
 
-    public Game(boolean musicOnFlag, DIFFICULTY difficulty) {
+    private final MusicManager musicManager;
+    private final BombObserver bombObserver;
+
+    public Game(boolean musicOnFlag) {
         this.musicOnFlag = musicOnFlag;
-        this.difficulty = difficulty;
 
         heroAircraft = HeroAircraft.getInstance();
         enemyAircrafts = new LinkedList<>();
@@ -88,12 +102,15 @@ public class Game extends JPanel {
         bulletPropTimeStack = new Stack<>();
         heroBulletContext = new BulletContext(new StraightShoot());
         musicManager = new MusicManager(this.musicOnFlag);
+        bombObserver = new BombObserver();
 
         // Scheduled 线程池，用于定时任务调度
         executorService = new ScheduledThreadPoolExecutor(4);
 
         // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
+
+        difficultyInit();
     }
 
     /**
@@ -114,6 +131,8 @@ public class Game extends JPanel {
                 }
                 // 飞机射出子弹
                 shootAction();
+                // 难度提升
+                difficultyAction();
             }
 
             // 子弹移动
@@ -141,6 +160,9 @@ public class Game extends JPanel {
         // 以固定延迟时间进行执行。本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
         executorService.scheduleWithFixedDelay(task, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
         executorService.scheduleAtFixedRate(() -> {
+            if (bulletPropTimeStack.empty()) {
+                return;
+            }
             for (int t : bulletPropTimeStack) {
                 if (time - t >= bulletPropDuration) {
                     bulletPropTimeStack.pop();
@@ -150,7 +172,7 @@ public class Game extends JPanel {
                     if (bulletPropTimeStack.empty()) {
                         break;
                     }
-                }}}, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
+            }}}, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
     }
 
     //***********************
@@ -283,6 +305,8 @@ public class Game extends JPanel {
         props.removeIf(AbstractFlyingObject::notValid);
     }
 
+    abstract void difficultyAction();
+
     private void gameOverCheckAction() {
         if (heroAircraft.getHp() <= 0) {
             // 游戏结束
@@ -360,18 +384,22 @@ public class Game extends JPanel {
     //************************
     //       子函数
     //************************
+
+    abstract void difficultyInit();
+
     /**
      * 生成敌机
      */
     private List<AbstractAircraft> generateEnemy() {
         List<AbstractAircraft> enemies = new ArrayList<>();
-        enemies.add(((int) (Math.random() * 2) == 0 ?
+        enemies.add((((Math.random() <= eliteEnemyProb) ?
             new EliteFactory().createEnemy() :
-            new MobFactory().createEnemy()));
-        if (this.score / bossScoreThreshold > count) {
-            enemies.add(new BossFactory().createEnemy());
+            new MobFactory().createEnemy())));
+        if (this.score / bossScoreThreshold > count && bossShowUp) {
+            enemies.add(new BossFactory().createEnemy(bossHp));
             count++;
             bossOnCount++;
+            bossCount++;
         }
         if (bossOnCount > 0) {
             musicManager.bgmBoss();
@@ -387,14 +415,19 @@ public class Game extends JPanel {
     private void generateProp(AbstractAircraft enemyAircraft) {
         int x = enemyAircraft.getLocationX();
         int y = enemyAircraft.getLocationY();
-        switch ((int) (Math.random() * 10 + 1)) {
+        if (Math.random() >= propProb) {
+            return;
+        }
+        switch ((int) (Math.random() * 3 + 1)) {
             case 1:
                 // blood
                 props.add(new BloodFactory().createProp(x, y));
                 break;
             case 2:
                 // bomb
-                props.add(new BombFactory().createProp(x, y));
+                BombProp bomb = (BombProp) new BombFactory().createProp(x, y);
+                props.add(bomb);
+                bombObserver.addBomb(bomb);
                 break;
             case 3:
                 // FireSupply
@@ -412,6 +445,8 @@ public class Game extends JPanel {
             heroAircraft.decreaseHp(-((BloodProp) prop).getBlood());
             System.out.println(propPrompt + "BloodSupply active");
         } else if (prop instanceof BombProp) {
+            score += bombObserver.notifyBomb((BombProp) prop, enemyAircrafts, enemyBullets);
+            bombObserver.removeBomb((BombProp) prop);
             System.out.println(propPrompt + "BombSupply active");
             musicManager.bomb();
         } else if (prop instanceof BulletProp) {
@@ -442,4 +477,14 @@ public class Game extends JPanel {
     public int getScore() {
         return score;
     }
+
+    void chooseBgImage() {
+        try {
+            ImageManager.BACKGROUND_IMAGE = ImageIO.read(new FileInputStream(ImageManager.bgImg));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println("\033[32mBackground: \033[0m" + ImageManager.bgImg);
+    }
+
 }

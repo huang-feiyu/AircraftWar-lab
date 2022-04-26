@@ -8,7 +8,7 @@ class BulletContext {
     + BulletContext(BulletStrategy strategy)
     + getStrategy(): BulletStrategy
     + setStrategy(BulletStrategy strategy): void
-    + executeStrategy(List<BaseBullet>):List<BaseBullet>
+    + executeStrategy(List<BaseBullet>): List<BaseBullet>
 }
 
 interface BulletStrategy {

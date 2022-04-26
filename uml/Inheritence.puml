@@ -54,27 +54,27 @@ abstract class AbstractProp
     + forward():void
 }
 
-AbstractFlyingObject <|-- AbstractAircraft
-AbstractFlyingObject <|-- BaseBullet
-AbstractFlyingObject <|-- AbstractProp
+AbstractFlyingObject <|---- AbstractAircraft
+AbstractFlyingObject <|------ BaseBullet
+AbstractFlyingObject <|---- AbstractProp
 
-AbstractAircraft <|-- HeroAircraft
-AbstractAircraft <|-- MobEnemy
-AbstractAircraft <|-- EliteEnemy
-AbstractAircraft <|-- BossEnemy
+AbstractAircraft <|------ HeroAircraft
+AbstractAircraft <|---- MobEnemy
+AbstractAircraft <|------ EliteEnemy
+AbstractAircraft <|---- BossEnemy
 
-BaseBullet <|-- HeroBullet
-BaseBullet <|-- EnemyBullet
+BaseBullet <|---- HeroBullet
+BaseBullet <|---- EnemyBullet
 
-AbstractProp <|-- BloodProp
-AbstractProp <|-- BombProp
-AbstractProp <|-- BulletProp
+AbstractProp <|----- BloodProp
+AbstractProp <|------- BombProp
+AbstractProp <|----- BulletProp
 
 class HeroAircraft {
     - shootNum:int
     - power:int
     - direction:int
-    - instance:HeroAircraft
+    - {static} instance:HeroAircraft
     - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
     + getInstance():HeroAircraft
     + forward():void
@@ -99,8 +99,6 @@ class EliteEnemy {
 
 class BossEnemy {
     - shootNum:int
-    - power:int
-    - direction:int
     + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
     + shoot():List<BaseBullet>

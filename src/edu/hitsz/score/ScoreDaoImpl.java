@@ -56,11 +56,7 @@ public class ScoreDaoImpl implements ScoreDao {
     @Override
     public void doDelete(Date time) {
         System.out.println("doDelete(Date time)" + time);
-        for (Score score : scores) {
-            if (score.getScoreTime().equals(time)) {
-                scores.remove(score);
-            }
-        }
+        scores.removeIf(score -> score.getScoreTime().equals(time));
     }
 
     public void doDelete(Score score) {

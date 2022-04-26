@@ -1,8 +1,11 @@
 package edu.hitsz.application;
 
+import edu.hitsz.application.game.DifficultGame;
+import edu.hitsz.application.game.EasyGame;
+import edu.hitsz.application.game.Game;
+import edu.hitsz.application.game.MediumGame;
 import edu.hitsz.gui.EndPanel;
 import edu.hitsz.gui.StartPanel;
-import edu.hitsz.tool.DIFFICULTY;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,7 +52,12 @@ public class Main {
         System.out.println("\n\033[32m=========WELCOME!=========\033[0m");
 
         // 开始游戏
-        Game game = new Game(startPanel.soundFlagOn, startPanel.difficulty);
+        Game game;
+        switch (startPanel.difficulty) {
+            case MEDIUM: game = new MediumGame(startPanel.soundFlagOn); break;
+            case DIFFICULT: game = new DifficultGame(startPanel.soundFlagOn); break;
+            default: game = new EasyGame(startPanel.soundFlagOn); break;
+        }
         frame.add(game);
         frame.setVisible(true);
         game.action();
